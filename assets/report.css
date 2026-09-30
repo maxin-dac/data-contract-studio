@@ -1,0 +1,247 @@
+:root {
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --critical: #dc2626;
+  --high: #ea580c;
+  --medium: #d97706;
+  --low: #0891b2;
+  --info: #16a34a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f1f5f9;
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.55;
+}
+
+.report-container {
+  max-width: 1050px;
+  margin: 2rem auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.report-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.report-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: var(--primary);
+}
+
+.report-brand h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--text);
+}
+
+.report-brand p {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.report-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+}
+
+.report-meta div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.report-meta dt {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.report-meta dd {
+  margin: 0.2rem 0 0;
+  font-weight: 650;
+  word-break: break-word;
+}
+
+.report-section {
+  margin-bottom: 2rem;
+}
+
+.report-section h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.9rem;
+}
+
+.summary-text {
+  white-space: pre-wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.97rem;
+}
+
+.finding {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+  background: #ffffff;
+}
+
+.finding.severity-critical {
+  border-left: 5px solid var(--critical);
+}
+
+.finding.severity-high {
+  border-left: 5px solid var(--high);
+}
+
+.finding.severity-medium {
+  border-left: 5px solid var(--medium);
+}
+
+.finding.severity-low {
+  border-left: 5px solid var(--low);
+}
+
+.finding.severity-info {
+  border-left: 5px solid var(--info);
+}
+
+.finding-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.finding-header h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 72px;
+  text-align: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-critical { background: var(--critical); }
+.badge-high { background: var(--high); }
+.badge-medium { background: var(--medium); }
+.badge-low { background: var(--low); }
+.badge-info { background: var(--info); }
+
+.finding-narrative {
+  margin: 0 0 0.65rem;
+}
+
+.finding-columns,
+.finding-recommendation {
+  margin: 0.35rem 0;
+  font-size: 0.92rem;
+  color: #334155;
+}
+
+.finding-details {
+  margin-top: 0.7rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+}
+
+.finding-details summary {
+  cursor: pointer;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.metrics-table th,
+.metrics-table td {
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.metrics-table th {
+  width: 34%;
+  background: var(--surface);
+  font-weight: 650;
+}
+
+.evidence-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.report-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .report-container {
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .finding-details {
+    display: none;
+  }
+}

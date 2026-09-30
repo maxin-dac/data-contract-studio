@@ -1,0 +1,125 @@
+name: Version
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: version-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile check
+        run: python -m compileall -q .
+
+      - name: Pytest
+        run: python -m pytest -q --cov=core --cov=ui --cov=report --cov-report=term-missing
+
+  release:
+    name: Release
+    needs: tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next semver
+        id: version
+        run: |
+          set -euo pipefail
+          CURRENT="$(cat VERSION 2>/dev/null || echo 0.0.0)"
+          CURRENT="$(echo "$CURRENT" | tr -d '[:space:]')"
+          [[ "$CURRENT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || CURRENT="0.0.0"
+
+          LAST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          if [ -n "$LAST_TAG" ]; then RANGE="${LAST_TAG}..HEAD"; else RANGE="HEAD"; fi
+
+          LOG="$(git log --no-merges --pretty=%B "$RANGE" 2>/dev/null || true)"
+
+          BUMP="none"
+          if printf '%s\n' "$LOG" | grep -qE '^feat!?(\(.+\))?:'; then
+            if printf '%s\n' "$LOG" | grep -qE '^feat!(\(.+\))?:|BREAKING CHANGE:'; then
+              BUMP="major"
+            else
+              BUMP="minor"
+            fi
+          elif printf '%s\n' "$LOG" | grep -qE '^(fix|chore|docs|refactor|test|ci|perf|style|revert)(\(.+\))?:'; then
+            BUMP="patch"
+          fi
+
+          if [ "$BUMP" = "none" ] && [ -z "$LAST_TAG" ]; then
+            BUMP="patch"
+          fi
+
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+          if [ "$BUMP" = "none" ]; then
+            echo "next=" >> "$GITHUB_OUTPUT"
+            echo "Aucun commit conventionnel depuis $LAST_TAG -> pas de nouvelle version."
+            exit 0
+          fi
+
+          IFS=. read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          MAJOR="${MAJOR:-0}"; MINOR="${MINOR:-0}"; PATCH="${PATCH:-0}"
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH+1)) ;;
+          esac
+          NEXT="$MAJOR.$MINOR.$PATCH"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Prochaine version : $CURRENT -> $NEXT ($BUMP)"
+
+      - name: Tag & publish release
+        if: steps.version.outputs.next != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NEXT="${{ steps.version.outputs.next }}"
+
+          printf '%s\n' "$NEXT" > VERSION
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add VERSION
+          git commit -m "chore(release): v${NEXT} [skip ci]"
+          git tag -a "v${NEXT}" -m "Release v${NEXT}"
+
+          git push origin HEAD:main
+          git push origin "v${NEXT}"
+
+          gh release create "v${NEXT}" \
+            --target main \
+            --title "v${NEXT}" \
+            --generate-notes
