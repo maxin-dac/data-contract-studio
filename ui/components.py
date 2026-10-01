@@ -9,6 +9,19 @@ import streamlit as st
 from .i18n import t
 
 
+_WARN_SVG = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M12 3l9 16H3z"/><path d="M12 10v4"/><path d="M12 17l.01 0"/></svg>'
+)
+
+_OK_SVG = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M5 12l4 4 10-10"/></svg>'
+)
+
+
 def esc(value: Any) -> str:
     return html.escape(str(value))
 
@@ -21,7 +34,7 @@ def page_header(title: str, subtitle: str = "") -> None:
 
 
 def section(title: str) -> None:
-    st.markdown(f'<h2 class="sec-h">{esc(title)}</h2>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sec-h">{esc(title)}</div>', unsafe_allow_html=True)
 
 
 def card(inner_html: str) -> None:
@@ -38,14 +51,14 @@ def kv_grid(items: Iterable[tuple[str, Any]]) -> None:
 
 def warn_box(message: str) -> None:
     st.markdown(
-        f'<div class="warnbox"><span>&#9888;&#65039;</span><div>{esc(message)}</div></div>',
+        f'<div class="warnbox">{_WARN_SVG}<span>{esc(message)}</span></div>',
         unsafe_allow_html=True,
     )
 
 
 def ok_box(message: str) -> None:
     st.markdown(
-        f'<div class="okbox"><span>&#9989;</span><div>{esc(message)}</div></div>',
+        f'<div class="okbox">{_OK_SVG}<span>{esc(message)}</span></div>',
         unsafe_allow_html=True,
     )
 
