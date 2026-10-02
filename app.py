@@ -33,7 +33,7 @@ from ui.components import (
     warn_box,
 )
 from ui.i18n import format_warning, t
-from ui.nav import render_nav, render_sidebar
+from ui.nav import render_topbar
 from ui.theme import load_css
 
 
@@ -474,8 +474,7 @@ def main() -> None:
     init_state()
     load_css()
     restore_session_if_available()
-    render_sidebar(VERSION)
-    view = render_nav()
+    view = render_topbar(VERSION)
     ROUTES[view]()
 
 

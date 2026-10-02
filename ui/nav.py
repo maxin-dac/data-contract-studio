@@ -33,59 +33,45 @@ def _e(value: str) -> str:
     return html.escape(str(value))
 
 
-def render_sidebar(version: str) -> None:
+def render_topbar(version: str) -> str:
     lang = st.session_state.get("lang", "en")
-
-    st.sidebar.markdown(
-        f'<div class="idcard"><div class="logo-wrap">{_LOGO_SVG}</div>'
-        f'<div class="idmeta"><div class="idtitle">{_e(t("app_name", lang))}</div>'
-        f'<div class="idsub">{_e(_TAGLINE.get(lang, _TAGLINE["en"]))}</div>'
-        f'<div class="idver">version v{_e(version)}</div></div></div>',
-        unsafe_allow_html=True,
-    )
-
-    st.sidebar.markdown(
-        f'<div class="lang-label">{_e(t("language", lang))}</div>',
-        unsafe_allow_html=True,
-    )
-
-    choice = st.sidebar.radio(
-        t("language", lang),
-        ["FR", "EN"],
-        index=0 if lang == "fr" else 1,
-        horizontal=True,
-        key="dds_lang_radio",
-        label_visibility="collapsed",
-    )
+    keys = [key for key, _ in NAV_ITEMS]
+    current = st.session_state.get("nav_view", "home")
+    if current not in keys:
+        current = keys[0]
+    with st.container(key="suite-topbar"):
+        nav_col, language_col, brand_col = st.columns([6.7, 1.1, 2.2])
+        with nav_col:
+            view = st.segmented_control(
+                t("nav_label", lang),
+                options=keys,
+                default=current,
+                format_func=lambda key: t(dict(NAV_ITEMS)[key], lang),
+                key="suite-nav",
+                required=True,
+                label_visibility="collapsed",
+                width="stretch",
+            )
+        with language_col:
+            choice = st.segmented_control(
+                t("language", lang),
+                ["FR", "EN"],
+                default="FR" if lang == "fr" else "EN",
+                key="dds_lang_radio",
+                required=True,
+                label_visibility="collapsed",
+            )
+        with brand_col:
+            version_text = version if version.startswith("v") else f"v{version}"
+            st.markdown(
+                f'<div class="suite-product"><span class="suite-product-logo">{_LOGO_SVG}</span>'
+                f'<span class="suite-product-copy"><strong>{_e(t("app_name", lang))}</strong>'
+                f'<small>{_e(version_text)}</small></span></div>',
+                unsafe_allow_html=True,
+            )
     new_lang = "fr" if choice == "FR" else "en"
     if new_lang != lang:
         st.session_state.lang = new_lang
         st.rerun()
-
-
-def render_nav() -> str:
-    lang = st.session_state.get("lang", "en")
-    labels = [t(key, lang) for _, key in NAV_ITEMS]
-
-    try:
-        selected = st.segmented_control(
-            t("nav_label", lang),
-            labels,
-            key="dds-top-nav",
-            label_visibility="collapsed",
-        )
-    except Exception:
-        selected = st.radio(
-            t("nav_label", lang),
-            labels,
-            horizontal=True,
-            key="dds-top-nav",
-            label_visibility="collapsed",
-        )
-
-    if selected not in labels:
-        selected = labels[0]
-
-    view = NAV_ITEMS[labels.index(selected)][0]
     st.session_state.nav_view = view
     return view
