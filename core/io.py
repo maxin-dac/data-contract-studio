@@ -15,7 +15,14 @@ except ImportError:  # pragma: no cover
 DEFAULT_ENCODINGS = ("utf-8-sig", "utf-8", "cp1252", "latin-1")
 
 
-def _decode_sample(data: bytes) -> Tuple[str, str]:
+def _decode_sample(data: bytes, hint: str | None = None) -> Tuple[str, str]:
+    if hint is not None and hint != "auto":
+        sample = data[:1_000_000]
+        try:
+            return sample.decode(hint), hint
+        except Exception:
+            pass
+
     sample = data[:1_000_000]
 
     if from_bytes is not None:
@@ -35,7 +42,9 @@ def _decode_sample(data: bytes) -> Tuple[str, str]:
     return sample.decode("latin-1", errors="replace"), "latin-1"
 
 
-def _sniff_delimiter(sample: str) -> str:
+def _sniff_delimiter(sample: str, hint: str | None = None) -> str:
+    if hint is not None and hint != "auto":
+        return hint
     sample = sample[:65536]
 
     try:
@@ -82,6 +91,8 @@ def _make_unique_columns(columns: list[str]) -> list[str]:
 def read_csv_bytes(
     data: bytes,
     max_rows: int = 200_000,
+    sep: str = "auto",
+    encoding: str = "auto",
 ) -> Tuple[pd.DataFrame, bool, str, str]:
     """
     Read CSV bytes with encoding/delimiter detection.
@@ -95,8 +106,8 @@ def read_csv_bytes(
     if not data:
         raise ValueError("Empty CSV file")
 
-    sample_text, encoding = _decode_sample(data)
-    delimiter = _sniff_delimiter(sample_text)
+    sample_text, encoding = _decode_sample(data, hint=None if encoding == "auto" else encoding)
+    delimiter = _sniff_delimiter(sample_text, hint=None if sep == "auto" else sep)
     header = _parse_header(sample_text, delimiter)
 
     # Colonnes temporaires garanties uniques pour éviter que pandas

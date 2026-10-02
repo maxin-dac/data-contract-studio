@@ -206,11 +206,18 @@ def page_import() -> None:
 
     page_header(t("imp_title", lang), t("imp_sub", lang))
 
+    with st.expander(t("imp_ioopts", lang), expanded=False):
+        max_rows = st.number_input(t("opt_max_rows", lang), min_value=100, max_value=2000000, value=int(s.get("opt_max_rows", MAX_ROWS)), step=10000, help=t("opt_max_rows_help", lang), key="opt_max_rows")
+        sep_map = {"sep_auto": "auto", "sep_comma": ",", "sep_semicolon": ";", "sep_tab": "\t", "sep_pipe": "|"}
+        sep_label = st.selectbox(t("opt_separator", lang), list(sep_map.keys()), index=0, help=t("opt_separator_help", lang), key="opt_sep_label")
+        enc_options = ["auto", "utf-8", "utf-8-sig", "latin1", "cp1252"]
+        enc_value = st.selectbox(t("opt_encoding", lang), enc_options, index=0, help=t("opt_encoding_help", lang), key="opt_enc")
+        sep_value = sep_map[sep_label]
+
     up = st.file_uploader(t("imp_upload", lang), type=["csv"], key="uploader")
 
     if up is not None:
-        max_rows = int(s.get("opt_max_rows", MAX_ROWS))
-        df, truncated, enc, delim = read_csv_bytes(up.getvalue(), max_rows=max_rows)
+        df, truncated, enc, delim = read_csv_bytes(up.getvalue(), max_rows=int(max_rows), sep=sep_value, encoding=enc_value)
         load_df(df, up.name, truncated, enc, delim)
 
     if s.df is not None:
